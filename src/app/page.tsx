@@ -1,113 +1,195 @@
-import Image from "next/image";
+'use client'
+import React, { useEffect, useState } from 'react'
+import CardCard from './components/CardCar'
+import { Car } from './types'
+import axios from 'axios'
+import SelectComponent from './components/Select'
+import { Checkbox, Pagination } from 'antd';
+import Loading from './components/Loading'
+import { useRouter } from 'next/navigation'
 
-export default function Home() {
+type TModels = {
+  brand: string
+  models: string[]
+}
+
+const HomePage = () => {
+  const router = useRouter();
+  const [cars, setCars] = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [models, setModels] = useState([]);
+  const [tariffs, setTariffs] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedBrands, setSelectedBrands] = useState('');
+  const [selectedModels, setSelectedModels] = useState([]);
+  const [selectedTariffs, setSelectedTariffs] = useState([]);
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    const fetchFilters = async () => {
+      setIsLoading(true);
+      try {
+        const response = await axios.get('https://test.taxivoshod.ru/api/test/?w=catalog-filter');
+        const { brands, models, tariffs } = response.data;
+        setBrands(brands.values);
+        setModels(models.values);
+        setTariffs(tariffs);
+      } catch (error) {
+        console.error("Error fetching filters", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFilters();
+  }, []);
+
+  const updateURL = () => {
+    const params = new URLSearchParams();
+    if (selectedBrands) {
+      params.append('brand', selectedBrands);
+    }
+    selectedModels.forEach(model => params.append('model', model));
+    selectedTariffs.forEach(tariff => params.append('tariff', tariff));
+    params.append('page', page.toString());
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
+
+  useEffect(() => {
+    updateURL();
+  }, [selectedBrands, selectedModels, selectedTariffs, page]);
+
+  useEffect(() => {
+    const fetchCars = async () => {
+      setIsLoading(true);
+      try {
+        const params = new URLSearchParams();
+        if (selectedBrands) {
+          params.append('brand', selectedBrands);
+        }
+        selectedModels.forEach(model => params.append('model[]', model));
+        selectedTariffs.forEach(tariff => params.append('tariff[]', tariff));
+        params.append('page', page.toString());
+        const response = await axios.get(`https://test.taxivoshod.ru/api/test/?w=catalog-cars&${params.toString()}`);
+        setCars(response.data.list);
+        console.log(response.data.pages);
+      } catch (error) {
+        console.error("Error fetching cars", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCars();
+  }, [selectedBrands, selectedModels, selectedTariffs, page]);
+
+  const handleModelChange = (model) => {
+    setSelectedModels((prevSelectedModels) => {
+      if (prevSelectedModels.includes(model)) {
+        return prevSelectedModels.filter((m) => m !== model);
+      } else {
+        return [...prevSelectedModels, model];
+      }
+    });
+  };
+
+  const handleTariffChange = (tariff) => {
+    setSelectedTariffs((prevSelectedTariffs) => {
+      if (prevSelectedTariffs.includes(tariff)) {
+        return prevSelectedTariffs.filter((t) => t !== tariff);
+      } else {
+        return [...prevSelectedTariffs, tariff];
+      }
+    });
+  };
+
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+  };
+
+  // If you need to handle brand changes as well
+  const handleBrandChange = (e) => {
+    const value = e.target.value;
+    setSelectedBrands(value);
+  };
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <section className='bg-white min-h-screen px-8 py-4'>
+
+      <main className="container mx-auto p-4">
+        <div className='m-4 flex-col justify-between gap-4 text-black'>
+          <h3>БЫСТРАЯ АРЕНДА АВТОМОБИЛЕЙ</h3>
         </div>
-      </div>
-
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+        <div className='w-full flex justify-between gap-4'>
+          <div className='w-[20%] p-4 flex-col justify-between gap-4'>
+            <div className='border'></div>
+            <div className='my-4'>
+              <h3 className='text-black text-2xl my-2'>Марки</h3>
+              {brands.map((brand, index) =>
+                <Checkbox
+                  key={index}
+                  value={brand}
+                  onChange={handleBrandChange}
+                  checked={selectedBrands === brand}
+                >
+                  {brand}
+                </Checkbox>
+              )}
+            </div>
+            <div className='border'></div>
+            <div className='my-4'>
+              <h3 className='text-black text-2xl my-2'>Модели</h3>
+              {models.map((brand, index) => (
+                <div key={index}>
+                  <p className='text-[#ff585d] text-lg'>{brand.brand}</p>
+                  <div style={{ paddingLeft: '20px' }}>
+                    {brand.models.map((model, index) => (
+                      <Checkbox
+                        key={index}
+                        onChange={() => handleModelChange(model)}
+                        checked={selectedModels.includes(model)}
+                      >
+                        {model}
+                      </Checkbox>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className='border'></div>
+          </div>
+          {isLoading ? (
+            <p className='text-black'>Loading...</p>
+          ) : (
+            <div className='w-[80%]'>
+              {/* <div className='flex justify-start items-center gap-4 text-sm my-4 text-black'>
+                {tariffs.map((tariff, index) => (
+                  <p
+                    key={index}
+                    className={`px-4 py-2 border border-[#ff585d] rounded-lg ${selectedTariffs.includes(tariff) ? 'bg-[#ff585d] text-white' : ''}`}
+                    onClick={() => handleTariffChange({ target: { options: [{ selected: !selectedTariffs.includes(tariff), value: tariff }] } })}
+                  >
+                    {tariff}
+                  </p>
+                ))}
+              </div> */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {cars.map((car, index) => (
+                  <CardCard car={car} isLoading={isLoading} key={index} />
+                ))}
+              </div>
+              <div className="flex justify-center my-4 text-black">
+                <button className="mx-2 px-4 py-2 bg-gray-300 rounded" onClick={() => handlePageChange(page - 1)} disabled={page === 1}>Previous</button>
+                <p>{page}</p>
+                <button className="mx-2 px-4 py-2 bg-gray-300 rounded" onClick={() => handlePageChange(page + 1)}>Next</button>
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
+    </section>
   );
 }
+
+export default HomePage
+
