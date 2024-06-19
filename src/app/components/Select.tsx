@@ -3,37 +3,29 @@ import { Select } from 'antd';
 
 type TProps = {
     placeholder: string
+    handleChange: any;
+    options: { value: string; label: string }[];
+    value: string[];
+    isMulti?: boolean; // 
 }
 
-const onChange = (value: string) => {
-    console.log(`selected ${value}`);
-};
-
-const onSearch = (value: string) => {
-    console.log('search:', value);
-};
-
-const SelectComponent = ({ placeholder }: TProps) => (
+const SelectComponent = ({ placeholder, handleChange, options, value }: TProps) => (
     <Select
-        showSearch
         placeholder={placeholder}
-        optionFilterProp="label"
-        onChange={onChange}
-        onSearch={onSearch}
-        options={[
-            {
-                value: 'jack',
-                label: 'Jack',
-            },
-            {
-                value: 'lucy',
-                label: 'Lucy',
-            },
-            {
-                value: 'tom',
-                label: 'Tom',
-            },
-        ]}
+        bordered={true}
+        value={value}
+        style={{
+            display: "flex",
+            alignItems: "center",
+            outline: "none",
+            width: "150px",
+            border: `2px solid "#EAEBEB"`,
+            borderRadius: "6px",
+            marginLeft: "10px",
+            color: "#929393",
+        }}
+        onChange={handleChange}
+        options={options}
     />
 );
 

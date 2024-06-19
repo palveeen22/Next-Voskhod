@@ -27,7 +27,7 @@ const CardCar = ({ car, isLoading }: TProps) => {
                         <p>{formattedNumber(car.price)}</p>
                         {/* <p>{car.tarif}</p> */}
                         <Link href={`/cars/${car?.id}`}>
-                            <button className="mt-4 bg-[#7362BC] text-white px-4 py-2 rounded">View Details</button>
+                            <button className="mx-auto mt-4 bg-[#7362BC] text-white px-4 py-2 rounded">View Details</button>
 
                         </Link>
                     </div>
