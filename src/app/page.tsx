@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import CardCard from './components/CardCar'
 import { Car } from './types'
 import axios from 'axios'
+import SelectComponent from './components/Select'
 
 const HomePage = () => {
   const [cars, setCars] = useState<Car[]>([]);
@@ -91,7 +92,8 @@ const HomePage = () => {
     setPage(newPage);
   };
 
-  console.log(brands.values, "<<<");
+  console.log(cars);
+  // console.log(brands.values, "<<<");
   // console.log(models.values, "<<<");
   // console.log(brands?.values, "<<<");
 
@@ -99,37 +101,26 @@ const HomePage = () => {
   return (
     <section className='bg-white min-h-screen px-8 py-4'>
       {isLoading ? (
-        <div className='text-black'>Loading...</div>
+        <div className='flex justify-center items-center min-h-screen'>
+          <p className='text-black '>Loading...</p>
+        </div>
       ) : (
         <main className="container mx-auto p-4">
-          <div className="flex flex-col md:flex-row gap-4 my-4">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700">Brands</label>
-              <select multiple className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" onChange={handleBrandChange}>
-                {/* {brands?.values?.map((brand, index) => (
-                  <option key={index} value={brand}>{brand}</option>
-                ))} */}
-                {console.log(brands)}
-              </select>
-            </div>
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700">Models</label>
-              <select multiple className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" onChange={handleModelChange}>
-                {/* {models.filter(model => selectedBrands.includes(model)).map((model, index) => (
-                  <option key={index} value={model}>{model}</option>
-                ))} */}
-              </select>
-            </div>
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700">Tariffs</label>
-              <select multiple className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" onChange={handleTariffChange}>
-                {/* {tariffs.map((tariff, index) => (
-                  <option key={index} value={tariff}>{tariff}</option>
-                ))} */}
-              </select>
+          <div className='m-4 flex-col justify-between gap-4 text-black'>
+            <h3>БЫСТРАЯ АРЕНДА АВТОМОБИЛЕЙ</h3>
+            {/* <div className='flex justify-start items-center gap-4 text-sm'>
+              <p>Все</p>
+              <p>Комфорт</p>
+              <p>Комфорт+</p>
+            </div> */}
+            <div className='flex justify-end items-center gap-4 text-sm'>
+              <SelectComponent placeholder="Brand" />
+              <SelectComponent placeholder="Model" />
+              <SelectComponent placeholder="Tarif" />
+
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {cars.map(car => (
               <CardCard car={car} isLoading={isLoading} />
             ))}

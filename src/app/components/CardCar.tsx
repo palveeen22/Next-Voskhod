@@ -1,5 +1,7 @@
 import React from 'react';
 import { Car } from '../types';
+import Link from 'next/link';
+import { formattedNumber } from '../libs';
 
 type TProps = {
     car: Car;
@@ -19,11 +21,15 @@ const CardCar = ({ car, isLoading }: TProps) => {
                         className="w-full h-48 object-cover rounded-t-lg"
                     />
                     <div className="p-4">
+                        {/* <p>{car.tarif}</p> */}
                         <h2 className="text-lg font-bold">{car.brand} {car.model}</h2>
-                        <p>Registration Number: {car.registration_number}</p>
-                        <p>Price: {car.price}</p>
-                        <p>Tariff: {car.tarif}</p>
-                        {/* <button className="mt-4 bg-blue-500 text-white px-4 py-2 rounded" onClick={() => router.push(`/car/${car.id}`)}>View Details</button> */}
+                        <p>{car.number}</p>
+                        <p>{formattedNumber(car.price)}</p>
+                        {/* <p>{car.tarif}</p> */}
+                        <Link href={`/cars/${car?.id}`}>
+                            <button className="mt-4 bg-[#7362BC] text-white px-4 py-2 rounded">View Details</button>
+
+                        </Link>
                     </div>
                 </>
             )}
