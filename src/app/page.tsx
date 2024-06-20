@@ -23,6 +23,9 @@ const HomePage: React.FC = () => {
   const [isReady, setIsReady] = useState(false)
 
 
+  console.log(process.env.NEXT_TEST_URL);
+
+
   useEffect(() => {
     const fetchFilters = async () => {
       setIsLoading(true);
