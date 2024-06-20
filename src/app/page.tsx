@@ -1,29 +1,27 @@
 'use client'
-import React, { useEffect, useState } from 'react'
-import CardCard from './components/CardCar'
-import { Car } from './types'
-import axios from 'axios'
-import SelectComponent from './components/Select'
-import { Checkbox, Pagination } from 'antd';
-import Loading from './components/Loading'
-import { useRouter } from 'next/navigation'
+import React, { useEffect, useState } from 'react';
+import CardCard from './components/CardCar';
+import { Car, TModel, Tariff } from './types';
+import axios from 'axios';
+import { Checkbox } from 'antd';
+import { useRouter, useSearchParams } from 'next/navigation';
 
-type TModels = {
-  brand: string
-  models: string[]
-}
 
-const HomePage = () => {
+
+const HomePage: React.FC = () => {
   const router = useRouter();
-  const [cars, setCars] = useState([]);
-  const [brands, setBrands] = useState([]);
-  const [models, setModels] = useState([]);
-  const [tariffs, setTariffs] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedBrands, setSelectedBrands] = useState('');
-  const [selectedModels, setSelectedModels] = useState([]);
-  const [selectedTariffs, setSelectedTariffs] = useState([]);
-  const [page, setPage] = useState(1);
+  const [cars, setCars] = useState<Car[]>([]);
+  const [brands, setBrands] = useState<string[]>([]);
+  const [models, setModels] = useState<TModel[]>([]);
+  const [tariffs, setTariffs] = useState<Tariff[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+  const [selectedModels, setSelectedModels] = useState<string[]>([]);
+  const [selectedTariffs, setSelectedTariffs] = useState<string[]>([]);
+  const [page, setPage] = useState<number>(1);
+  const searchQuery = useSearchParams()
+  const [isReady, setIsReady] = useState(false)
+
 
   useEffect(() => {
     const fetchFilters = async () => {
@@ -33,7 +31,7 @@ const HomePage = () => {
         const { brands, models, tariffs } = response.data;
         setBrands(brands.values);
         setModels(models.values);
-        setTariffs(tariffs);
+        setTariffs(Object.entries(tariffs.values).map(([id, name]) => ({ id, name })));
       } catch (error) {
         console.error("Error fetching filters", error);
       } finally {
@@ -44,16 +42,41 @@ const HomePage = () => {
     fetchFilters();
   }, []);
 
+
   const updateURL = () => {
     const params = new URLSearchParams();
-    if (selectedBrands) {
-      params.append('brand', selectedBrands);
+    const pageParams = searchQuery.get("page")
+    console.log(pageParams, "params")
+    if (selectedBrands.length > 0) {
+      selectedBrands.forEach(brand => params.append('brand', brand));
     }
-    selectedModels.forEach(model => params.append('model', model));
-    selectedTariffs.forEach(tariff => params.append('tariff', tariff));
+    if (selectedModels.length > 0) {
+      selectedModels.forEach(model => params.append('model', model));
+    }
+    if (selectedTariffs.length > 0) {
+      selectedTariffs.forEach(tariff => params.append('tariff', tariff));
+    }
     params.append('page', page.toString());
-    router.push(`?${params.toString()}`, { scroll: false });
+    if (isReady) {
+      router.push(`?${params.toString()}`, { scroll: false });
+
+    }
+    setIsReady(true)
   };
+
+  const consumeParams = () => {
+    const pageParams = parseInt(searchQuery.get("page")!!)
+    const brandParams = searchQuery.getAll("brand")
+    const modelParams = searchQuery.getAll("model")
+
+    setSelectedBrands(brandParams)
+    setSelectedModels(modelParams)
+  }
+
+  useEffect(() => {
+    consumeParams();
+  }, []);
+
 
   useEffect(() => {
     updateURL();
@@ -64,10 +87,12 @@ const HomePage = () => {
       setIsLoading(true);
       try {
         const params = new URLSearchParams();
-        if (selectedBrands) {
-          params.append('brand', selectedBrands);
+        if (selectedBrands.length > 0) {
+          selectedBrands.forEach(brand => params.append('brand[]', brand));
         }
-        selectedModels.forEach(model => params.append('model[]', model));
+        if (selectedModels.length > 0) {
+          selectedModels.forEach(model => params.append('model[]', model));
+        }
         selectedTariffs.forEach(tariff => params.append('tariff[]', tariff));
         params.append('page', page.toString());
         const response = await axios.get(`https://test.taxivoshod.ru/api/test/?w=catalog-cars&${params.toString()}`);
@@ -83,7 +108,17 @@ const HomePage = () => {
     fetchCars();
   }, [selectedBrands, selectedModels, selectedTariffs, page]);
 
-  const handleModelChange = (model) => {
+  const handleBrandChange = (brand: string) => {
+    setSelectedBrands((prevSelectedBrands) => {
+      if (prevSelectedBrands.includes(brand)) {
+        return prevSelectedBrands.filter((b) => b !== brand);
+      } else {
+        return [...prevSelectedBrands, brand];
+      }
+    });
+  };
+
+  const handleModelChange = (model: string) => {
     setSelectedModels((prevSelectedModels) => {
       if (prevSelectedModels.includes(model)) {
         return prevSelectedModels.filter((m) => m !== model);
@@ -93,32 +128,22 @@ const HomePage = () => {
     });
   };
 
-  const handleTariffChange = (tariff) => {
-    setSelectedTariffs((prevSelectedTariffs) => {
-      if (prevSelectedTariffs.includes(tariff)) {
-        return prevSelectedTariffs.filter((t) => t !== tariff);
-      } else {
-        return [...prevSelectedTariffs, tariff];
-      }
-    });
-  };
-
-  const handlePageChange = (newPage) => {
+  const handlePageChange = (newPage: number) => {
     setPage(newPage);
-  };
-
-  // If you need to handle brand changes as well
-  const handleBrandChange = (e) => {
-    const value = e.target.value;
-    setSelectedBrands(value);
   };
 
   return (
     <section className='bg-white min-h-screen px-8 py-4'>
-
       <main className="container mx-auto p-4">
         <div className='m-4 flex-col justify-between gap-4 text-black'>
-          <h3>БЫСТРАЯ АРЕНДА АВТОМОБИЛЕЙ</h3>
+          <div className='flex justify-between items-center'>
+            <h3>БЫСТРАЯ АРЕНДА АВТОМОБИЛЕЙ</h3>
+            <div className="flex justify-center items-center text-black">
+              <button className="mx-2 px-4  bg-gray-300 rounded" onClick={() => handlePageChange(page - 1)} disabled={page === 1}>←</button>
+              <p>{page}</p>
+              <button className="mx-2 px-4  bg-gray-300 rounded" onClick={() => handlePageChange(page + 1)}>→</button>
+            </div>
+          </div>
         </div>
         <div className='w-full flex justify-between gap-4'>
           <div className='w-[20%] p-4 flex-col justify-between gap-4'>
@@ -129,8 +154,8 @@ const HomePage = () => {
                 <Checkbox
                   key={index}
                   value={brand}
-                  onChange={handleBrandChange}
-                  checked={selectedBrands === brand}
+                  onChange={() => handleBrandChange(brand)}
+                  checked={selectedBrands.includes(brand)}
                 >
                   {brand}
                 </Checkbox>
@@ -159,29 +184,15 @@ const HomePage = () => {
             <div className='border'></div>
           </div>
           {isLoading ? (
-            <p className='text-black'>Loading...</p>
+            <div className='flex justify-center items-center w-full h-full'>
+              <p className='text-black'>Loading...</p>
+            </div>
           ) : (
             <div className='w-[80%]'>
-              {/* <div className='flex justify-start items-center gap-4 text-sm my-4 text-black'>
-                {tariffs.map((tariff, index) => (
-                  <p
-                    key={index}
-                    className={`px-4 py-2 border border-[#ff585d] rounded-lg ${selectedTariffs.includes(tariff) ? 'bg-[#ff585d] text-white' : ''}`}
-                    onClick={() => handleTariffChange({ target: { options: [{ selected: !selectedTariffs.includes(tariff), value: tariff }] } })}
-                  >
-                    {tariff}
-                  </p>
-                ))}
-              </div> */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 {cars.map((car, index) => (
                   <CardCard car={car} isLoading={isLoading} key={index} />
                 ))}
-              </div>
-              <div className="flex justify-center my-4 text-black">
-                <button className="mx-2 px-4 py-2 bg-gray-300 rounded" onClick={() => handlePageChange(page - 1)} disabled={page === 1}>Previous</button>
-                <p>{page}</p>
-                <button className="mx-2 px-4 py-2 bg-gray-300 rounded" onClick={() => handlePageChange(page + 1)}>Next</button>
               </div>
             </div>
           )}
@@ -189,7 +200,6 @@ const HomePage = () => {
       </main>
     </section>
   );
-}
+};
 
-export default HomePage
-
+export default HomePage;
