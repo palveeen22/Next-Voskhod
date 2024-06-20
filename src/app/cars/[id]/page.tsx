@@ -1,8 +1,20 @@
+'use client'
 import { formattedNumber } from "@/app/libs";
 import { CarDetail } from "@/app/types";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
+
+// Import Swiper React components
+import { Swiper, SwiperSlide } from 'swiper/react';
+
+// Import Swiper styles
+import 'swiper/css';
+import 'swiper/css/navigation';
+
+
+// import required modules
+import { Navigation } from 'swiper/modules';
 
 
 type TProps = {
@@ -10,7 +22,6 @@ type TProps = {
 };
 
 const GetCarDetails = async (id: number): Promise<CarDetail> => {
-    "use server";
     const response = await fetch(
         `https://test.taxivoshod.ru/api/test/?w=catalog-car&id=${id}`
     );
@@ -51,18 +62,20 @@ const page = async ({ params }: { params: { id: number } }) => {
                             );
                         })}
                     </div>
-                    <div>
-                        {car?.images?.slice(0, 1).map((image, index) => (
-                            <Image
-                                key={index}
-                                src={image.image}
-                                width={600}
-                                height={600}
-                                alt={`${car.brand} ${car.model}`}
-                                className="rounded-lg object-cover"
-                            />
+                    <Swiper navigation={true} modules={[Navigation]} className="mySwiper">
+                        {car?.images?.map((image, index) => (
+                            <SwiperSlide>
+                                <Image
+                                    key={index}
+                                    src={image.image}
+                                    width={600}
+                                    height={600}
+                                    alt={`${car.brand} ${car.model}`}
+                                    className="rounded-lg object-cover"
+                                />
+                            </SwiperSlide>
                         ))}
-                    </div>
+                    </Swiper>
                 </div>
             </div>
             <div className="w-1/2 flex-col justify-center items-center px-4 py-8">
