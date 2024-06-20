@@ -20,15 +20,15 @@ const CardCar = ({ car, isLoading }: TProps) => {
                         alt={`${car.brand} ${car.model}`}
                         className="w-full h-48 object-cover rounded-t-lg"
                     />
-                    <div className="p-4">
+                    <div className="flex flex-col justify-between item-center p-4">
                         {/* <p>{car.tarif}</p> */}
                         <h2 className="text-lg font-bold">{car.brand} {car.model}</h2>
                         <p>{car.number}</p>
+                        <div className='border my-4'></div>
                         <p>{formattedNumber(car.price)}</p>
                         {/* <p>{car.tarif}</p> */}
                         <Link href={`/cars/${car?.id}`}>
-                            <button className="mx-auto mt-4 bg-[#7362BC] text-white px-4 py-2 rounded">View Details</button>
-
+                            <button className="w-full px-4 py-2 border border-[#ff585d] rounded-lg mt-4">Подробнее</button>
                         </Link>
                     </div>
                 </>
